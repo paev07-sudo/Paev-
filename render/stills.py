@@ -15,7 +15,7 @@ CHROME = '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_sh
 
 
 def open_page(p):
-    b = p.chromium.launch(executable_path=CHROME, args=['--force-color-profile=srgb', '--font-render-hinting=none'])
+    b = p.chromium.launch(executable_path=CHROME, args=['--force-color-profile=srgb', '--font-render-hinting=none', '--disable-lcd-text'])
     page = b.new_page(viewport={'width': 1440, 'height': 1440}, device_scale_factor=1)
     errors = []
     page.on('pageerror', lambda e: errors.append(str(e)))

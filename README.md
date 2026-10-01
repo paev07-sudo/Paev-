@@ -29,6 +29,7 @@ Police : Geist (SIL OFL 1.1, voir `motion/fonts/Geist-LICENSE.txt`).
 - Les deux bords de l'indicateur d'onglet, de la fusion Kunzle/Rigolet et du bouton des toggles suivent des ressorts différents. Le bord avant s'étire donc devant le bord arrière.
 - Glisser-déposer en manipulation directe : tant que le bouton est pressé, la valeur est calculée depuis la position du curseur. Au relâchement, elle revient avec un ressort qui part de sa position et de sa vitesse du moment.
 - La dernière image enchaîne exactement sur la première : `seek(0)` et `seek(40)` sont identiques au pixel près, et la position et la vitesse du curseur sont continues.
+- Pureté vérifiée par `render/purity.py` : 60 instants rendus dans l'ordre puis dans un ordre aléatoire donnent les mêmes images. Il reste au plus 8/255 d'écart sur une vingtaine de pixels d'une icône, à cause du rastériseur de Chromium, ce qui est invisible.
 
 ## Régénérer
 
@@ -41,6 +42,7 @@ python3 motion/build.py                               # assemble motion/krisalis
 python3 render/stills.py beats out/beats 0.3          # une image par temps
 python3 render/contact.py out/beats out/sheets        # planches de contrôle
 python3 render/scan.py out/scan.json                  # boucle et recherche de sauts image par image
+python3 render/purity.py 60                           # même image quel que soit l'ordre des seek()
 python3 render/stills.py events out/events.json       # événements sonores de la timeline
 python3 audio/mix.py out/music.wav out/grid.json out/events.json out/soundtrack.wav
 python3 render/video.py out/krisalis-metamorphose.mp4 4   # rendu final, 4 processus

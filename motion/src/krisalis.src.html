@@ -105,8 +105,9 @@ function tx(parent, text, size, weight, color, extra = '') {
   return el(parent, `<div class="tx ${extra}" style="font-size:${size}px;font-weight:${weight};color:${color}">${text}</div>`);
 }
 function place(e, x, y, v, anchor = 'cc', extra = '') {
+  // 'inherit', never 'visible': a child must stay hidden when its parent is hidden
   if (!v || v.o < 0.003) { e.style.visibility = 'hidden'; return false; }
-  e.style.visibility = 'visible';
+  e.style.visibility = 'inherit';
   const ax = anchor[0] === 'l' ? 0 : anchor[0] === 'c' ? -50 : -100;
   const ay = anchor[1] === 't' ? 0 : anchor[1] === 'c' ? -50 : -100;
   e.style.opacity = Math.min(1, v.o).toFixed(4);
@@ -120,7 +121,7 @@ function box(e, x, y, w, h, r, extra = '') {
   e.style.width = f2(Math.max(0, w)) + 'px'; e.style.height = f2(Math.max(0, h)) + 'px';
   if (r != null) e.style.borderRadius = f2(Math.max(0, r)) + 'px';
 }
-const show = (e, on) => { e.style.visibility = on ? 'visible' : 'hidden'; };
+const show = (e, on) => { e.style.visibility = on ? 'inherit' : 'hidden'; };
 function rrect(x0, y0, x1, y1, r) {
   r = Math.max(0, Math.min(r, (x1 - x0) / 2, (y1 - y0) / 2));
   return `M${f2(x0 + r)} ${f2(y0)}H${f2(x1 - r)}A${f2(r)} ${f2(r)} 0 0 1 ${f2(x1)} ${f2(y0 + r)}V${f2(y1 - r)}` +
@@ -830,7 +831,7 @@ function renderPPE(t, w, h) {
   place(D.pSub, 48, 198, s(1), 'lt');
   if (place(D.pBox, 48, 248, vis(t, [[T(9, 2), out + .04]]), 'lt')) {
     const b = X.badge(t);
-    D.pBadge.style.visibility = b > .003 ? 'visible' : 'hidden';
+    D.pBadge.style.visibility = b > .003 ? 'inherit' : 'hidden';
     D.pBadge.style.transform = `translate(632px,46px) scale(${Math.max(0, b).toFixed(4)})`;
   }
   D.pRows.forEach((r, i) => {
