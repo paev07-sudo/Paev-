@@ -1,0 +1,11 @@
+out/segments/
+out/beats/
+out/test.mp4
+out/render.log
+out/scan.json
+out/sheets/blur*
+out/sheets/crop*
+out/sheets/f8_3.png
+out/sheets/review.png
+__pycache__/
+out/music.wav

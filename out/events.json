@@ -1,0 +1,331 @@
+{
+ "events": [
+  {
+   "t": 1,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 2.5,
+   "type": "tick",
+   "gain": 1
+  },
+  {
+   "t": 3,
+   "type": "success",
+   "gain": 1
+  },
+  {
+   "t": 4.5,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 5.5,
+   "type": "low",
+   "gain": 1
+  },
+  {
+   "t": 7,
+   "type": "press",
+   "gain": 1
+  },
+  {
+   "t": 7.5,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 8.5,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 9,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 9.5,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 10,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 10.5,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 11,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 13.5,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 14,
+   "type": "hover",
+   "gain": 0.5
+  },
+  {
+   "t": 14.5,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 15,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 15.5,
+   "type": "success",
+   "gain": 1
+  },
+  {
+   "t": 16,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 17,
+   "type": "fill",
+   "gain": 1
+  },
+  {
+   "t": 17.5,
+   "type": "fill",
+   "gain": 1
+  },
+  {
+   "t": 18,
+   "type": "fill",
+   "gain": 1
+  },
+  {
+   "t": 18.5,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 19,
+   "type": "toggle",
+   "gain": 1
+  },
+  {
+   "t": 20,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 20.5,
+   "type": "grab",
+   "gain": 1
+  },
+  {
+   "t": 22,
+   "type": "snap",
+   "gain": 1
+  },
+  {
+   "t": 23,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 24,
+   "type": "tab",
+   "gain": 1
+  },
+  {
+   "t": 27,
+   "type": "toggle",
+   "gain": 1
+  },
+  {
+   "t": 28,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 28.5,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 28.625,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 28.75,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 28.875,
+   "type": "key",
+   "gain": 0.7
+  },
+  {
+   "t": 29,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 29.125,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 29.25,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 29.375,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 29.5,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 29.625,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 29.75,
+   "type": "key",
+   "gain": 0.7
+  },
+  {
+   "t": 29.875,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 30,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 30.125,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 30.25,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 30.5,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 30.625,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 30.75,
+   "type": "key",
+   "gain": 1
+  },
+  {
+   "t": 31,
+   "type": "enter",
+   "gain": 1
+  },
+  {
+   "t": 32,
+   "type": "grab",
+   "gain": 1
+  },
+  {
+   "t": 33,
+   "type": "drop",
+   "gain": 1
+  },
+  {
+   "t": 34.5,
+   "type": "click",
+   "gain": 1
+  },
+  {
+   "t": 35,
+   "type": "success",
+   "gain": 1
+  },
+  {
+   "t": 36.5,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 37,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.0625,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.125,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.1875,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.25,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.3125,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.375,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 37.4375,
+   "type": "letter",
+   "gain": 0.6
+  },
+  {
+   "t": 38.5,
+   "type": "low",
+   "gain": 1
+  },
+  {
+   "t": 39,
+   "type": "pop",
+   "gain": 1
+  }
+ ],
+ "dur": 40,
+ "period": 0.5
+}
