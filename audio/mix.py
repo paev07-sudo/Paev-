@@ -5,7 +5,8 @@ every sound so that its measured peak lands exactly on its event time. The music
 is rotated so that its first measured downbeat peak sits at video t = 0, and the
 whole mix wraps around the 40 s loop.
 
-Usage: python3 audio/mix.py out/music.wav out/grid.json out/events.json out/soundtrack.wav
+Usage: python3 audio/mix.py out/music.wav out/grid.json out/events.json out/soundtrack.wav [--no-wrap]
+(--no-wrap: the piece does not loop, sounds are cut at the end instead of wrapping to the start)
 """
 import json
 import sys
@@ -67,15 +68,37 @@ SFX = {
     'fill':   lambda: pad(0.4 * tone(1650, .05, .012)),
     'hover':  lambda: pad(0.25 * tone(2600, .03, .006)),
     'letter': lambda: pad(0.3 * tone(4200, .03, .005), 0.15 * noise(.01, .001, 4000, 10000)),
+    'whoosh': lambda: whoosh(.45, 300, 4000),
+    'swish':  lambda: whoosh(.25, 1500, 9000),
+    'slam':   lambda: pad(0.8 * tone(90, .3, .09, sweep=48), 0.45 * noise(.06, .012, 300, 4000), 0.3 * noise(.02, .002, 2000, 9000)),
+    'fall':   lambda: whoosh(.6, 3500, 250),
+    'shimmer': lambda: pad(*[0.18 * delayed(tone(f, .5, .18, att=.004), d) for f, d in ((1568, 0), (2093, .03), (2637, .06), (3136, .09))]),
+    'blub':   lambda: pad(0.6 * tone(240, .14, .05, sweep=520), 0.12 * noise(.02, .003, 600, 3000)),
+    'burst':  lambda: pad(whoosh(.5, 6000, 300), 0.5 * noise(.08, .02, 200, 6000)),
 }
+
+
+def whoosh(d, f0, f1):
+    """Filtered-noise sweep with a soft attack; peak near the middle."""
+    t = tt(d); n = rng.standard_normal(len(t)); out = np.zeros(len(t)); blk = 512
+    for i in range(0, len(t), blk):
+        u = i / len(t); fc = f0 * (f1 / f0) ** u
+        seg = bp(n[max(0, i - 2048):i + blk], max(60, fc * .6), min(fc * 1.6, 20000))
+        out[i:i + blk] = seg[-len(n[i:i + blk]):]
+    env = np.sin(np.pi * np.clip(t / d, 0, 1)) ** 1.5
+    return out * env
 LEVEL = {'click': .55, 'tab': .5, 'tick': .45, 'low': .55, 'press': .5, 'pop': .6, 'success': .45, 'toggle': .55,
-         'key': .38, 'enter': .6, 'grab': .45, 'drop': .6, 'snap': .5, 'fill': .35, 'hover': .3, 'letter': .3}
+         'key': .38, 'enter': .6, 'grab': .45, 'drop': .6, 'snap': .5, 'fill': .35, 'hover': .3, 'letter': .3,
+         'whoosh': .42, 'swish': .3, 'slam': .7, 'fall': .4, 'shimmer': .35, 'blub': .5, 'burst': .55}
 PAN = {'tab': .1, 'key': -.08, 'letter': .15}
 
 
 def peak_index(x):
     env = np.convolve(np.abs(x), np.ones(24) / 24, mode='same')     # 0.5 ms
     return int(np.argmax(env))
+
+
+WRAP = '--no-wrap' not in sys.argv
 
 
 def main():
@@ -101,7 +124,11 @@ def main():
         start = int(round(e['t'] * SR)) - pk
         pan = PAN.get(e['type'], 0)
         l, r = np.cos((pan + 1) * np.pi / 4) * np.sqrt(2), np.sin((pan + 1) * np.pi / 4) * np.sqrt(2)
-        idx = (start + np.arange(len(x))) % n            # wrap around the loop
+        idx = start + np.arange(len(x))
+        if WRAP:
+            idx = idx % n                                # wrap around the loop
+        else:
+            keep = (idx >= 0) & (idx < n); idx, x = idx[keep], x[keep]
         ui[idx, 0] += x * l
         ui[idx, 1] += x * r
     ui = hp(ui.T, 120).T

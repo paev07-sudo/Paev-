@@ -10,7 +10,8 @@ import sys
 from playwright.sync_api import sync_playwright
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-HTML = (ROOT / 'motion/krisalis.html').as_uri()
+import os
+HTML = (ROOT / os.environ.get('KR_HTML', 'motion/krisalis.html')).as_uri()
 CHROME = '/opt/pw-browsers/chromium_headless_shell-1194/chrome-linux/headless_shell'
 
 

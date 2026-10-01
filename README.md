@@ -1,4 +1,39 @@
-# Krisalis : Métamorphose
+# Krisalis
+
+Deux vidéos motion design pour Krisalis SA, fiduciaire et immobilier à Monthey.
+
+1. **La métamorphose** (`out/metamorphose/krisalis-la-metamorphose.mp4`) : Kunzle SA (1968) et Rigolet SA (1969) deviennent Krisalis SA.
+2. **Motion UI** (`out/krisalis-metamorphose.mp4`) : les métiers de Krisalis en interface, 40 s qui bouclent.
+
+## 1. La métamorphose
+
+40 s, 1440×1440, 60 fps, 120 BPM. Le scénario s'appuie sur les vrais logos :
+- les deux logos se construisent dans leurs couleurs d'origine (Kunzle `#3C454C` / `#0298D8`, Rigolet `#575C68` / `#C55265`) ;
+- « 1968 » et « 1969 » s'affichent sur des aplats de couleur, puis « près de 2 × 60 ans » ;
+- les lettres qui ne passent pas dans le nouveau nom tombent. Les autres reprennent la couleur de leur maison et se rangent dans l'ordre K R I S A L I S :
+  K (Kunzle) · R (Rigolet) · I (le i de Rigolet) · S (le Z de Kunzle) · A (le o de Rigolet) · L (Kunzle) · I (le l de Rigolet) · S (le E de Kunzle) ;
+- les lettres fondent en galets, puis fusionnent en un cocon unique qui pulse pendant la montée de la musique ;
+- sur le drop, le cocon éclate et chaque galet éclot en lettre Krisalis. La coche bleue de Kunzle et le triangle de Rigolet deviennent les deux points du « : » ;
+- un aplat bleu marine naît du point de Rigolet. Suivent les textes (deux histoires, une seule forme, métiers, adresses), puis le logo final.
+
+Sources : `metamorphose/src/metamorphose.src.html` (assemblé par `metamorphose/build.py` en `metamorphose/metamorphose.html`).
+Logos vectorisés : `brand/kunzle-logo.svg` (redessin géométrique mesuré, `brand/tools/kunzle_geometry.py`) et `brand/rigolet-logo.svg` (potrace, `brand/tools/vectorize.py`).
+Morphing : `metamorphose/tools/morph_data.py`. Chaque contour est rééchantillonné à 420 points et passe par un galet convexe pour ne jamais se croiser.
+Musique originale : `audio/music_metamorphose.py`. Couplets en la mineur, montée sur les mesures 9 et 10, drop en majeur sur l'éclosion (mesure 11).
+
+```sh
+python3 brand/tools/vectorize.py && python3 brand/tools/kunzle_geometry.py
+python3 metamorphose/tools/morph_data.py
+python3 audio/music_metamorphose.py out/metamorphose/music.wav
+python3 audio/analyze.py out/metamorphose/music.wav out/metamorphose/grid.json
+python3 metamorphose/build.py
+KR_HTML=metamorphose/metamorphose.html python3 render/stills.py events out/metamorphose/events.json
+python3 audio/mix.py out/metamorphose/music.wav out/metamorphose/grid.json out/metamorphose/events.json out/metamorphose/soundtrack.wav --no-wrap
+KR_HTML=metamorphose/metamorphose.html KR_AUDIO=out/metamorphose/soundtrack.wav KR_SEG=out/metamorphose/segments \
+  python3 render/video.py out/metamorphose/krisalis-la-metamorphose.mp4 4
+```
+
+## 2. Motion UI
 
 Motion UI de 40 s (120 BPM, 20 mesures), carré 1440×1440, 60 fps, qui boucle parfaitement.
 Krisalis SA, fiduciaire et immobilier à Monthey.

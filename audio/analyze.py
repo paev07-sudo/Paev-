@@ -92,29 +92,33 @@ bar_scores = [bar_comb(phase + q * period) for q in range(4)]
 q = int(np.argmax(bar_scores))
 first_downbeat = (phase + q * period) % (4 * period)
 
-# --- measured peak of every beat: broadband transient envelope (1 ms), +-40 ms around the
-# coarse onset (the STFT onset is biased early by about half a window, so the window is wide)
-low = np.convolve(np.abs(mono), np.ones(48) / 48, mode='same')
+# --- measured attack of every beat: high-band (>2 kHz) envelope, 1 ms; the attack is where it
+# first reaches 40 % of its local maximum, within +-40 ms of the coarse estimate
+from scipy.signal import butter, sosfiltfilt
+hf = sosfiltfilt(butter(4, 2000, 'high', fs=sr, output='sos'), np.concatenate([mono, mono, mono]))[len(mono):2 * len(mono)]
+env_hf = np.convolve(np.abs(hf), np.ones(48) / 48, mode='same')
 beats = []
 n_beats = int(round(dur / period))
 for n in range(n_beats):
     tb = (first_downbeat + n * period) % dur
     s0, s1 = int((tb - 0.04) * sr), int((tb + 0.04) * sr)
     ii = np.arange(s0, s1) % len(mono)
-    pk = ii[np.argmax(low[ii])]
-    beats.append(round(pk / sr, 5))
+    w = env_hf[ii]
+    k = int(np.argmax(w >= 0.4 * w.max()))
+    beats.append(round(ii[k] / sr, 5))
 
-peak_offset = float(np.median([(bt - (first_downbeat + n * period)) for n, bt in enumerate(beats)
-                               if abs(bt - (first_downbeat + n * period)) < 0.05]))
+offs = [((bt - n * period + dur / 2) % dur) - dur / 2 for n, bt in enumerate(beats)]
+t0 = float(np.median(offs)) % (4 * period)
+peak_offset = t0 - first_downbeat
 res = {
     'file': path, 'duration': dur, 'bpm': round(bpm, 3), 'period': period,
     'first_downbeat_onset': first_downbeat, 'peak_offset': peak_offset,
-    't0': (first_downbeat + peak_offset) % (4 * period),   # video t = 0 lands on the first downbeat peak
+    't0': t0,                                         # video t = 0 lands on the first downbeat attack
     'bar_scores': [float(v) for v in bar_scores], 'beats': sorted(beats),
 }
 json.dump(res, open(out, 'w'), indent=1)
-print(f"BPM {bpm:.3f}  period {period:.5f}s  first downbeat (onset) {first_downbeat:.4f}s  "
-      f"peak offset {peak_offset*1000:.1f} ms  beats {len(beats)}")
+print(f"BPM {bpm:.3f}  period {period:.5f}s  coarse downbeat {first_downbeat:.4f}s  "
+      f"measured first-downbeat attack t0 = {t0 * 1000:.1f} ms  beats {len(beats)}")
 jit = np.array(beats[1:]) - np.array(beats[:-1])
 jit = jit[jit > 0]
 print(f"beat spacing: mean {jit.mean():.5f}s  min {jit.min():.5f}  max {jit.max():.5f}  bar scores {np.round(bar_scores, 4)}")

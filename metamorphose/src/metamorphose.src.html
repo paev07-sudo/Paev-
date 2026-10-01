@@ -1,0 +1,545 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Krisalis — La métamorphose</title>
+<style>
+@font-face{font-family:"Geist";src:url(data:font/woff2;base64,__FONT_B64__) format("woff2");font-weight:100 900;font-style:normal;font-display:block}
+html,body{margin:0;padding:0;background:#fff}
+#stage{position:relative;width:1440px;height:1440px;overflow:hidden;background:#fff;font-family:"Geist",system-ui,sans-serif;-webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+#world{position:absolute;left:0;top:0;width:1440px;height:1440px;transform-origin:0 0}
+.a{position:absolute;left:0;top:0}
+.full{position:absolute;left:0;top:0;width:1440px;height:1440px}
+.mask{position:absolute;left:0;top:0;overflow:hidden;white-space:nowrap;line-height:1.3;padding:0 .08em}
+.mask > span{display:block;letter-spacing:-0.02em}
+svg{overflow:visible;display:block}
+#hud{position:absolute;left:24px;top:20px;font:600 22px/1 "Geist",sans-serif;color:#888;display:none;z-index:9}
+</style>
+</head>
+<body>
+<div id="stage"><div id="bg" class="full"></div><div id="world"></div><div id="hud"></div></div>
+<script>
+'use strict';
+/* =====================================================================
+   Krisalis — La métamorphose. Kunzle SA (1968) + Rigolet SA (1969) → Krisalis SA.
+   1440×1440, 120 BPM, 20 bars = 40 s. Every style is a pure function of t (seek):
+   no CSS transitions, no timers, no state kept from one frame to the next.
+   Springs are closed-form step responses summed per target change.
+   ===================================================================== */
+const PERIOD = __PERIOD__;
+const DUR = 80 * PERIOD;
+const at = (m, b, f = 0) => ((m - 1) * 4 + (b - 1) + f) * PERIOD;
+const T = at;
+const DATA = __DATA__;
+const C = 720;
+
+/* brand colours (measured on the supplied logos) */
+const K_INK = [60, 69, 76], K_BLUE = [2, 152, 216];          // Kunzle  #3C454C · #0298D8
+const R_INK = [87, 92, 104], R_RED = [197, 82, 101];          // Rigolet #575C68 · #C55265
+const NAVY = [30, 62, 113], WHITE = [255, 255, 255], INK = [22, 24, 27];   // Krisalis #1E3E71
+
+/* ------------------------------------------------------------- springs */
+function spring(tau, w, z) {
+  if (tau <= 0) return 0;
+  if (!isFinite(w)) return 1;
+  if (z < 1) { const wd = w * Math.sqrt(1 - z * z); return 1 - Math.exp(-z * w * tau) * (Math.cos(wd * tau) + (z * w / wd) * Math.sin(wd * tau)); }
+  return 1 - Math.exp(-w * tau) * (1 + w * tau);
+}
+class Track {
+  constructor(v0, sp = [14, .86]) { this.v0 = v0; this.last = v0; this.k = []; this.sp = sp; }
+  to(t, v, sp) { const s = sp || this.sp; this.k.push([t, v - this.last, s[0], s[1]]); this.last = v; return this; }
+  set(t, v) { this.k.push([t, v - this.last, Infinity, 1]); this.last = v; return this; }
+  at(t) { let v = this.v0; for (const k of this.k) if (t > k[0]) v += k[1] * spring(t - k[0], k[2], k[3]); return v; }
+}
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const lerp = (a, b, u) => a + (b - a) * u;
+const mixc = (a, b, u) => [lerp(a[0], b[0], u), lerp(a[1], b[1], u), lerp(a[2], b[2], u)];
+const css = (c, a = 1) => a >= 1 ? `rgb(${c.map(Math.round).join(',')})` : `rgba(${c.map(Math.round).join(',')},${a.toFixed(3)})`;
+const ease = u => { u = clamp(u); return u * u * u * (u * (u * 6 - 15) + 10); };
+const f2 = v => (+v).toFixed(2);
+const bump = (tau, w) => tau <= 0 ? 0 : (tau / w) ** 2 * Math.exp(2 * (1 - tau / w));   // smooth 0 → 1 → 0 impulse
+
+/* ------------------------------------------------------------- DOM */
+const stage = document.getElementById('stage'), world = document.getElementById('world');
+const bgEl = document.getElementById('bg'), hud = document.getElementById('hud');
+function el(parent, html) { const d = document.createElement('div'); d.innerHTML = html.trim(); const e = d.firstElementChild; parent.appendChild(e); return e; }
+const show = (e, on) => { e.style.visibility = on ? 'inherit' : 'hidden'; };
+const EVENTS = [];
+const ev = (t, type, gain = 1) => EVENTS.push({ t: +t.toFixed(5), type, gain });
+
+/* kinetic type: a line revealed from below through a mask, leaving upwards */
+const KT = [];
+function kt(text, size, weight, color, x, y, tin, tout, anchor = 'c', ls = -0.02) {
+  const m = el(world, `<div class="mask"><span style="font-size:${size}px;font-weight:${weight};color:${color};letter-spacing:${ls}em">${text}</span></div>`);
+  const o = { m, s: m.firstElementChild, x, y, tin, tout, anchor, size };
+  KT.push(o); if (tin !== null) { ev(tin, 'tick', .6); } return o;
+}
+function drawKT(o, t, dx = 0, dy = 0) {
+  const i = spring(t - o.tin, 17, .9), q = o.tout == null ? 0 : spring(t - o.tout, 20, 1);
+  if (i < .002 || q > .998) { show(o.m, false); return; }
+  show(o.m, true);
+  const ax = o.anchor === 'l' ? 0 : o.anchor === 'r' ? -100 : -50;
+  o.m.style.transform = `translate(${f2(o.x + dx)}px,${f2(o.y + dy)}px) translate(${ax}%,-50%)`;
+  o.s.style.transform = `translateY(${f2((1 - i) * 112 - q * 112)}%)`;
+}
+
+/* ============================================================ logos */
+const LG = {};
+for (const name of ['kunzle', 'rigolet']) {
+  const L = DATA[name], [x0, y0, x1, y1] = L.bbox;
+  LG[name] = { ...L, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, parts: {} };
+  for (const p of L.parts) LG[name].parts[p.id] = p;
+}
+const HERITAGE = [  // Krisalis order: K R I S a L I S
+  ['kunzle', 'K', 'k'], ['rigolet', 'R', 'r'], ['rigolet', 'i_stem', 'i-1'], ['kunzle', 'Z', 's-1'],
+  ['rigolet', 'o', 'a'], ['kunzle', 'L', 'l'], ['rigolet', 'l', 'i-2'], ['kunzle', 'E', 's-2']];
+const isHeritage = (logo, id) => HERITAGE.some(h => h[0] === logo && h[1] === id);
+const MARK = { kunzle: 'check', rigolet: 'triangle' };
+
+/* Krisalis wordmark in world space (centre of the frame at the éclosion) */
+const KV = DATA.krisalis.vb, KLW = 1100, KS = KLW / KV[0], KLH = KV[1] * KS;
+const KGL = {}; for (const g of DATA.krisalis.glyphs) KGL[g.id] = g;
+function glyphBox(id) {     // bbox of a Krisalis glyph in its own units
+  const nums = KGL[id].d.match(/-?[\d.]+/g).map(Number);
+  // M/L/A commands: collect x,y pairs of M/L and arc end points
+  const pts = []; const re = /([MLA])([^MLAZ]*)/g; let m;
+  while ((m = re.exec(KGL[id].d))) {
+    const v = m[2].trim().split(/[\s,]+/).map(Number);
+    if (m[1] === 'A') pts.push([v[5], v[6]]); else pts.push([v[0], v[1]]);
+  }
+  void nums;
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)];
+}
+
+/* ============================================================ timeline */
+const TL = {};
+function buildTimeline() {
+  // logo placements (centre x, y, scale)
+  TL.KL = { x: new Track(C), y: new Track(700), s: new Track(.84) };
+  TL.RL = { x: new Track(C), y: new Track(1010), s: new Track(.5) };
+  const mv = (L, t, x, y, s, sp) => { L.x.to(t, x, sp); L.y.to(t, y, sp); L.s.to(t, s, sp); };
+  mv(TL.KL, T(2, 1), C, 420, .62, [11, .9]); ev(T(2, 1), 'whoosh', .7);
+  mv(TL.KL, T(4, 1), C, -330, .62, [12, 1]); mv(TL.RL, T(4, 1), C, 1760, .5, [12, 1]); ev(T(4, 1), 'whoosh');
+  mv(TL.KL, T(5, 1), C, 440, .7, [11, .88]); mv(TL.RL, T(5, 1), C, 990, .52, [11, .88]); ev(T(5, 1), 'whoosh');
+
+  // Krisalis wordmark placement (left/top of the wordmark box)
+  TL.KR = { x: new Track(C), y: new Track(C), s: new Track(1) };
+  mv(TL.KR, T(13, 1), C, 300, .56, [10, .9]);
+  mv(TL.KR, T(18, 3), C, 680, .92, [10, .88]);
+  mv(TL.KR, T(19, 1), C, 690, 1, [10, .9]);
+  TL.KRpulse = [T(11, 4), T(14, 4), T(20, 1)];
+
+  // background: white, navy flood from the colon at 22 s, back to white at 36 s
+  TL.flood = new Track(0, [7, 1]).to(T(12, 1), 2300).to(T(19, 1), 0, [13, 1]);
+
+  // camera
+  TL.cam = { z: new Track(1, [5, 1]) };
+  TL.cam.z.to(T(9, 1), 1.12, [1.2, 1]).to(T(11, 1), 1, [9, .8]).to(T(19, 2), 1.05, [.7, 1]);
+
+  // sound events (UI layer; the music carries the build and the impacts)
+  ev(T(1, 1), 'pop'); [0, 1, 2, 3, 4].forEach(i => ev(T(1, 2, i / 4), 'letter'));
+  ev(T(1, 3, .5), 'swish', .6);
+  ev(T(2, 2), 'pop'); for (let i = 0; i < 9; i++) ev(T(2, 3, i / 8), 'letter');
+  ev(T(2, 4), 'swish', .6);
+  ev(T(4, 1), 'slam'); ev(T(4, 2), 'slam'); ev(T(4, 3), 'slam', 1.1);
+  ev(T(5, 2), 'fall'); ev(T(5, 3), 'shimmer'); ev(T(5, 4), 'pop', .8);
+  for (let i = 0; i < 8; i++) ev(T(6, 1, i / 2), 'tick', .8);
+  for (let i = 0; i < 8; i++) ev(T(7, 1, i / 2), 'blub');
+  for (let i = 0; i < 8; i++) ev(T(8, 1, i / 2), 'tick', .7);
+  ev(T(11, 1), 'burst'); ev(T(11, 2), 'pop'); ev(T(11, 2, .08), 'pop', .8);
+  ev(T(12, 1), 'whoosh');
+  ev(T(14, 1), 'pop', .8); ev(T(14, 2), 'pop', .8); ev(T(14, 3), 'whoosh', .8); ev(T(14, 4), 'low');
+  ev(T(19, 1), 'whoosh'); ev(T(20, 1), 'low', .8);
+}
+
+/* ============================================================ elements */
+const D = {};
+function partSvg(name, p, color) {
+  const [x0, y0, x1, y1] = p.bbox, pd = 8, w = x1 - x0 + 2 * pd, h = y1 - y0 + 2 * pd;
+  const e = el(world, `<svg class="a" width="${w}" height="${h}" viewBox="${x0 - pd} ${y0 - pd} ${w} ${h}" style="transform-origin:0 0"><path fill="${css(color)}" fill-rule="evenodd" d="${p.d}"/></svg>`);
+  return { e, path: e.firstElementChild, x0: x0 - pd, y0: y0 - pd, w, h, name, p };
+}
+function hexc(h) { return [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); }
+
+function buildDOM() {
+  D.flood = el(world, `<div class="full" style="background:${css(NAVY)}"></div>`);
+  D.panelK = el(world, `<div class="a" style="width:1440px;height:722px;background:${css(K_BLUE)}"></div>`);
+  D.panelR = el(world, `<div class="a" style="width:1440px;height:722px;background:${css(R_RED)}"></div>`);
+  D.ripples = el(world, `<svg class="full" viewBox="0 0 1440 1440">${'<path fill="none" stroke-width="4"/>'.repeat(8)}</svg>`);
+  D.parts = {};
+  for (const name of ['kunzle', 'rigolet']) {
+    D.parts[name] = {};
+    for (const p of DATA[name].parts) D.parts[name][p.id] = partSvg(name, p, hexc(p.color));
+  }
+  // morph layer: one world-size svg per heritage letter + the two marks + the cocoon
+  D.morph = HERITAGE.map(() => el(world, `<svg class="full" viewBox="0 0 1440 1440"><path fill-rule="evenodd"/></svg>`));
+  D.marks = ['check', 'triangle'].map(() => el(world, `<svg class="full" viewBox="0 0 1440 1440"><path/></svg>`));
+  D.cocoon = el(world, `<svg class="full" viewBox="0 0 1440 1440"><path fill="${css(NAVY)}"/></svg>`);
+  // final wordmark: navy and a white copy revealed by the flood
+  const kr = (fill) => `<svg class="a" width="${f2(KLW)}" height="${f2(KLH)}" viewBox="0 0 ${KV[0]} ${KV[1]}" style="transform-origin:0 0"><g fill="${fill}" fill-rule="evenodd">` +
+    DATA.krisalis.glyphs.map(g => `<path d="${g.d}"/>`).join('') +
+    DATA.krisalis.colon.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/>`).join('') + `</g></svg>`;
+  D.krN = el(world, kr(css(NAVY)));
+  D.krWwrap = el(world, `<div class="full"></div>`);
+  D.krW = el(D.krWwrap, kr('#fff'));
+  // cards (M14): the original logos on white
+  const card = (name, w) => {
+    const L = DATA[name], [x0, y0, x1, y1] = L.bbox, pd = 10;
+    return el(world, `<div class="a" style="width:560px;height:280px;border-radius:40px;background:#fff;transform-origin:50% 50%">
+      <svg class="a" style="left:40px;top:${f2((280 - 480 * (y1 - y0 + 2 * pd) / (x1 - x0 + 2 * pd)) / 2)}px" width="480" height="${f2(480 * (y1 - y0 + 2 * pd) / (x1 - x0 + 2 * pd))}" viewBox="${x0 - pd} ${y0 - pd} ${x1 - x0 + 2 * pd} ${y1 - y0 + 2 * pd}">
+      ${L.parts.map(p => `<path fill="${p.color}" fill-rule="evenodd" d="${p.d}"/>`).join('')}</svg></div>`);
+  };
+  D.cardK = card('kunzle'); D.cardR = card('rigolet');
+}
+
+/* ------------------------------------------------------------- text */
+function buildText() {
+  const ink = css(INK), ink6 = css(INK, .6), w = '#fff', w7 = 'rgba(255,255,255,.72)';
+  D.t = {
+    kCap1: kt('Kunzle SA · depuis 1968', 44, 500, ink6, C, 0, T(1, 4), T(2, 1), 'c', 0),
+    kCap2: kt('Av. du Théâtre 20 · Monthey', 40, 500, ink6, C, 0, T(2, 1, .3), T(4, 1), 'c', 0),
+    rCap1: kt('Rigolet SA · depuis 1969', 44, 500, ink6, C, 0, T(3, 1), T(3, 2), 'c', 0),
+    rCap2: kt('Rue du Coppet 1 · Monthey', 40, 500, ink6, C, 0, T(3, 2), T(4, 1), 'c', 0),
+    deux: kt('Deux histoires.', 84, 700, ink, C, 712, T(3, 3), T(3, 4)),
+    metier: kt('Un même métier.', 84, 700, ink, C, 712, T(3, 4), T(4, 1)),
+    y68: kt('1968', 330, 700, '#fff', C, 330, T(4, 1, .1), T(4, 3), 'c', -0.04),
+    y68s: kt('Kunzle SA', 48, 600, 'rgba(255,255,255,.8)', C, 545, T(4, 1, .25), T(4, 3), 'c', 0),
+    y69: kt('1969', 330, 700, '#fff', C, 1050, T(4, 2, .1), T(4, 3), 'c', -0.04),
+    y69s: kt('Rigolet SA', 48, 600, 'rgba(255,255,255,.8)', C, 1265, T(4, 2, .25), T(4, 3), 'c', 0),
+    pres: kt('près de', 52, 600, ink6, C, 500, T(4, 3), T(5, 1), 'c', 0),
+    x60: kt('2 × 60 ans', 220, 700, ink, C, 690, T(4, 3), T(5, 1), 'c', -0.04),
+    exp: kt('d’expérience à Monthey', 64, 600, ink, C, 880, T(4, 4), T(5, 1), 'c', -0.01),
+    meta: kt('MÉTAMORPHOSE EN COURS', 36, 600, css(INK, .55), C, 1150, T(8, 3), T(10, 4), 'c', 0.22),
+    pair: kt(`<span style="color:${css(K_BLUE)}">Kunzle SA</span> + <span style="color:${css(R_RED)}">Rigolet SA</span>`, 46, 600, css(INK, .75), C, 880, T(11, 3), T(12, 1), 'c', 0),
+    tagline: kt('Fiduciaire · Immobilier · Monthey', 44, 500, w7, C, 880, T(12, 2), T(13, 1), 'c', 0),
+    hist: kt('Deux histoires.', 130, 700, w, C, 760, T(13, 1), T(13, 3)),
+    forme: kt('Une seule forme.', 130, 700, w, C, 760, T(13, 3), T(14, 1)),
+    plus: kt('+', 110, 600, w, C, 790, T(14, 1, .5), T(14, 3)),
+    egal: kt('= Krisalis SA', 110, 700, w, C, 780, T(14, 3, .6), T(15, 1)),
+    metiers: kt('Nos métiers', 44, 600, w7, C, 600, T(15, 1), T(17, 1), 'c', 0.02),
+    exp2: kt('près de 2 × 60 ans', 128, 700, w, C, 740, T(17, 1), T(17, 2)),
+    exp3: kt('d’expérience cumulée', 56, 600, w7, C, 870, T(17, 1, .25), T(17, 2)),
+    adr: kt('Deux adresses à Monthey', 96, 700, w, C, 640, T(17, 2), T(18, 1)),
+    adr1: kt(`<span style="color:${css(K_BLUE)}">●</span>&nbsp; Av. du Théâtre 20`, 60, 600, w, C, 790, T(17, 3), T(18, 1)),
+    adr2: kt(`<span style="color:${css(R_RED)}">●</span>&nbsp; Rue du Coppet 1`, 60, 600, w, C, 880, T(17, 4), T(18, 1, .1)),
+    equipe: kt('Une seule équipe.', 130, 700, w, C, 760, T(18, 1), T(18, 2)),
+    nom: kt('Un seul nom.', 130, 700, w, C, 760, T(18, 2), T(18, 3)),
+    points: kt(`<span style="color:#4FB9EC">Kunzle SA</span>&nbsp; + &nbsp;<span style="color:#E8798C">Rigolet SA</span>`, 54, 600, w7, C, 860, T(18, 3, .2), T(19, 1)),
+    final1: kt('Fiduciaire · Immobilier · Monthey', 46, 500, css(INK, .7), C, 870, T(19, 2), null, 'c', 0),
+    final2: kt('krisalis.ch', 52, 600, css(NAVY), C, 950, T(19, 3), null, 'c', 0),
+  };
+  const SERV = ['Gérance', 'Administration de PPE', 'Courtage', 'Fiduciaire', 'Comptabilité', 'Fiscalité', 'Gestion financière', 'Conseil'];
+  D.serv = SERV.map((s, i) => kt(s, 140, 700, w, C, 770, T(15, 1, i), T(15, 1, i + 1)));
+}
+
+/* ============================================================ morph helpers */
+const M = DATA.morph;
+function polyD(P) { let s = 'M' + f2(P[0][0]) + ' ' + f2(P[0][1]); for (let i = 1; i < P.length; i++) s += 'L' + f2(P[i][0]) + ' ' + f2(P[i][1]); return s + 'Z'; }
+function centroid(P) { let x = 0, y = 0; for (const p of P) { x += p[0]; y += p[1]; } return [x / P.length, y / P.length]; }
+const mapPts = (P, f) => P.map(f);
+
+/* world box of a Krisalis glyph at the éclosion position */
+function krBox(id) {
+  const [x0, y0, x1, y1] = glyphBox(id);
+  const LX = C - KLW / 2, LY = C - KLH / 2;
+  return { cx: LX + (x0 + x1) / 2 * KS, cy: LY + (y0 + y1) / 2 * KS, w: (x1 - x0) * KS, h: (y1 - y0) * KS };
+}
+const krPt = p => [C - KLW / 2 + p[0] * KS, C - KLH / 2 + p[1] * KS];
+
+/* per heritage letter: source part, row placement */
+function letterInfo(i) {
+  const [logo, sid, did] = HERITAGE[i];
+  const p = LG[logo].parts[sid], [x0, y0, x1, y1] = p.bbox;
+  const box = krBox(did);
+  const s = box.h / (y1 - y0);
+  return { logo, sid, did, p, pcx: (x0 + x1) / 2, pcy: (y0 + y1) / 2, pw: x1 - x0, ph: y1 - y0, row: { cx: box.cx, cy: box.cy, s }, box };
+}
+
+/* cocoon geometry (centre, size) with the build-up pulses and the squeeze */
+const COC = { cx: C, cy: C, w: 230, h: 520 };
+const PULSES = (() => {
+  const p = [];
+  for (let b = 0; b < 8; b++) p.push([T(9, 1, b), .035 + .004 * b]);
+  for (let b = 0; b < 8; b++) p.push([T(10, 1, b / 2), .045 + .004 * b]);
+  for (let b = 0; b < 6; b++) p.push([T(10, 3, b / 4), .05 + .006 * b]);
+  return p;
+})();
+function cocoonAt(t) {
+  let pulse = 0; for (const [tp, a] of PULSES) pulse += a * bump(t - tp, .045);
+  const sq = spring(t - T(10, 4, .5), 26, 1) - spring(t - T(11, 1), 30, 1);
+  return { cx: COC.cx, cy: COC.cy, w: COC.w * (1 + pulse) * (1 + .1 * sq), h: COC.h * (1 + pulse) * (1 - .12 * sq) };
+}
+const blobPts = (B, box) => B.map(q => [box.cx + q[0] * box.w, box.cy + q[1] * box.h]);
+
+/* the two marks: hold positions, orbit, flight to the colon */
+function markState(k, t) {
+  // k = 0 check (Kunzle), 1 triangle (Rigolet)
+  const hold = k === 0 ? [300, 290] : [1140, 1150];
+  const holdS = k === 0 ? 1.25 : .42;
+  const bob = 8 * Math.sin((t - T(5, 4)) * Math.PI * (k ? .9 : 1.1));
+  // orbit from 15.5 s
+  const t0 = T(8, 2), dt = Math.max(0, t - t0);
+  const ang = (k ? Math.PI : 0) - 2.3 + 2 * Math.PI * (.18 * dt + .055 * dt * dt);
+  const rad = lerp(560, 330, clamp(dt / 4.5));
+  const orb = [C + rad * Math.cos(ang), C + rad * .62 * Math.sin(ang)];
+  const o = ease(clamp((t - t0) / .7));
+  const pos = [lerp(hold[0], orb[0], o), lerp(hold[1] + bob, orb[1], o)];
+  const sc = lerp(holdS, k === 0 ? 1.15 : .4, o);
+  return { pos, sc };
+}
+
+/* ============================================================ render */
+function seek(tRaw) {
+  const t = clamp(tRaw, 0, DUR - 1e-6);
+  const cz = TL.cam.z.at(t) * (1 + .025 * bump(t - T(11, 1), .06));
+  world.style.transform = `translate(${f2(C)}px,${f2(C)}px) scale(${cz.toFixed(5)}) translate(${f2(-C)}px,${f2(-C)}px)`;
+  bgEl.style.background = '#fff';
+
+  // ---- flood (navy disc from the colon)
+  const krx = TL.KR.x.at(t), kry = TL.KR.y.at(t), krs = TL.KR.s.at(t);
+  let kp = 0; for (const tp of TL.KRpulse) kp += .045 * bump(t - tp, .07);
+  const krScale = krs * (1 + kp);
+  const KLX = krx - KLW * krScale / 2, KLY = kry - KLH * krScale / 2;
+  // the navy flood is born from the lower dot of the colon (Rigolet's) and returns into it
+  const dotR = DATA.krisalis.colon[1][2] * KS * krScale;
+  const colon = [KLX + DATA.krisalis.colon[1][0] * KS * krScale, KLY + DATA.krisalis.colon[1][1] * KS * krScale];
+  const fr = Math.max(0, TL.flood.at(t)), discR = dotR + fr;
+  D.flood.style.clipPath = `circle(${f2(discR)}px at ${f2(colon[0])}px ${f2(colon[1])}px)`;
+  show(D.flood, fr > .3);
+  // panels for 1968 / 1969
+  const pk = spring(t - T(4, 1), 14, .92) - spring(t - T(4, 3), 16, 1), pr = spring(t - T(4, 2), 14, .92) - spring(t - T(4, 3), 16, 1);
+  show(D.panelK, pk > .001); show(D.panelR, pr > .001);
+  D.panelK.style.transform = `translateY(${f2(-722 * (1 - pk))}px)`;
+  D.panelR.style.transform = `translateY(${f2(718 + 722 * (1 - pr))}px)`;
+
+  renderLogos(t);
+  renderMorph(t);
+
+  // ---- final wordmark (exact paths) after the éclosion
+  const krOn = t >= T(11, 3);
+  show(D.krN, krOn); show(D.krWwrap, krOn && fr > .5);
+  if (krOn) {
+    const tr = `translate(${f2(KLX)}px,${f2(KLY)}px) scale(${krScale.toFixed(5)})`;
+    D.krN.style.transform = tr; D.krW.style.transform = tr;
+    D.krWwrap.style.clipPath = `circle(${f2(discR)}px at ${f2(colon[0])}px ${f2(colon[1])}px)`;
+    // white copy: the lower dot opens up as the flood grows (and closes as it returns)
+    const [up, lo] = D.krW.querySelectorAll('circle');
+    lo.setAttribute('r', f2(DATA.krisalis.colon[1][2] * clamp(fr / 60)));
+    // 18.3: the two dots of the colon take back their colours — Kunzle above, Rigolet below
+    const pc = spring(t - T(18, 3), 14, .8) - spring(t - T(19, 1), 14, 1);
+    up.setAttribute('fill', css(mixc(WHITE, K_BLUE, clamp(pc))));
+    lo.setAttribute('fill', css(mixc(WHITE, R_RED, clamp(pc))));
+  }
+
+  // ---- cards (M14): the two original logos fold into the wordmark
+  for (const [e, x, tin, tf] of [[D.cardK, 395, T(14, 1), T(14, 3)], [D.cardR, 1045, T(14, 2), T(14, 3, .12)]]) {
+    const i = spring(t - tin, 16, .8), f = spring(t - tf, 12, .95);
+    if (i < .003 || f > .995) { show(e, false); continue; }
+    show(e, true);
+    const px = lerp(x, krx, f), py = lerp(790, kry, f), s = i * lerp(1, .12, f);
+    e.style.transform = `translate(${f2(px - 280)}px,${f2(py - 140)}px) scale(${s.toFixed(4)})`;
+    e.style.opacity = (1 - f * f).toFixed(3);
+  }
+
+  // ---- kinetic type (captions follow their logo)
+  const KLy = TL.KL.y.at(t), KLs = TL.KL.s.at(t), RLy = TL.RL.y.at(t), RLs = TL.RL.s.at(t);
+  for (const o of KT) {
+    let dy = 0;
+    if (o === D.t.kCap1 || o === D.t.kCap2) dy = KLy + 262 * KLs + 6;
+    if (o === D.t.rCap1 || o === D.t.rCap2) dy = RLy + 312 * RLs + 16;
+    drawKT(o, t, 0, dy);
+  }
+  if (window.HUD) { const b = Math.floor(t / PERIOD + 1e-6); hud.style.display = 'block'; hud.textContent = `M${Math.floor(b / 4) + 1}.${b % 4 + 1} · ${t.toFixed(3)} s`; }
+}
+
+/* ---------------------------------------------------- logos (parts) */
+function renderLogos(t) {
+  for (const name of ['kunzle', 'rigolet']) {
+    const L = name === 'kunzle' ? TL.KL : TL.RL, lg = LG[name];
+    const lx = L.x.at(t), ly = L.y.at(t), ls = L.s.at(t);
+    const parts = DATA[name].parts;
+    parts.forEach((p, idx) => {
+      const P = D.parts[name][p.id];
+      const heritage = isHeritage(name, p.id), mark = p.id === MARK[name];
+      const isTag = p.id.startsWith('tag');
+      // appearance
+      let tin;
+      if (name === 'kunzle') tin = mark ? T(1, 1) : isTag ? T(1, 3, .5) + .012 * idx : T(1, 2) + .125 * ['K', 'UN', 'Z', 'L', 'E'].indexOf(p.id);
+      else {
+        const order = { R: 0, i_dot: 1, i_stem: 1, g: 2, o: 3, l: 4, e: 5, t: 6, S: 7, A: 7 };
+        tin = mark ? T(2, 2) : isTag ? T(2, 4) + .012 * idx : T(2, 3) + .125 * order[p.id];
+      }
+      // hand-over to the morph layer
+      const until = mark ? T(5, 4) : heritage ? T(7, 1) : Infinity;
+      if (t < tin || t >= until) { show(P.e, false); return; }
+      // falling away (non-heritage parts) from 8.5 s
+      const fallT = T(5, 2) + .018 * idx;
+      const fall = (!heritage && !mark) ? spring(t - fallT, 6, 1) : 0;
+      if (fall > .985) { show(P.e, false); return; }
+      show(P.e, true);
+      let x = lx + (P.x0 - lg.cx) * ls, y = ly + (P.y0 - lg.cy) * ls, s = ls, rot = 0, extra = '', clip = 'none', op = 1;
+      if (mark) {   // hero entrance: big at the centre, then into place
+        const hero = name === 'kunzle' ? { x: C, y: 700, s: 3.6 } : { x: C, y: 1000, s: 1.45 };
+        const pop = spring(t - tin, 16, .72), h = spring(t - (tin + PERIOD), 13, .86);
+        const cx = (p.bbox[0] + p.bbox[2]) / 2, cy = (p.bbox[1] + p.bbox[3]) / 2;
+        const tx = lerp(hero.x, lx + (cx - lg.cx) * ls, h), ty = lerp(hero.y, ly + (cy - lg.cy) * ls, h);
+        s = lerp(hero.s, ls, h) * pop;
+        if (name === 'rigolet') rot = -35 * (1 - spring(t - tin, 11, .8));
+        P.e.style.transform = `translate(${f2(tx)}px,${f2(ty)}px) rotate(${f2(rot)}deg) scale(${Math.max(1e-4, s).toFixed(5)}) translate(${f2(-(cx - P.x0))}px,${f2(-(cy - P.y0))}px)`;
+        P.e.style.clipPath = 'none'; P.e.style.opacity = '1';
+        return;
+      } else if (isTag) {
+        op = spring(t - tin, 22, 1);
+      } else {      // letters rise from their baseline through a mask
+        const r = spring(t - tin, 18, .9), d = (1 - r) * P.h;
+        clip = d > .2 ? `inset(0 0 ${f2(d)}px 0)` : 'none';
+        extra = ` translateY(${f2(d)}px)`;
+      }
+      if (fall > 0) { y += fall * 700; rot += (idx % 2 ? 1 : -1) * 18 * fall; op *= 1 - fall; extra += ` rotate(${f2(rot)}deg)`; }
+      P.e.style.transform = `translate(${f2(x)}px,${f2(y)}px) scale(${s.toFixed(5)})${extra}`;
+      P.e.style.clipPath = clip;
+      P.e.style.opacity = op.toFixed(3);
+      // recolour at 9 s: Kunzle letters → Kunzle blue, Rigolet letters → raspberry
+      if (heritage) {
+        const rc = spring(t - T(5, 3), 14, 1);
+        P.path.setAttribute('fill', css(mixc(name === 'kunzle' ? K_INK : R_INK, name === 'kunzle' ? K_BLUE : R_RED, rc)));
+      }
+    });
+  }
+}
+
+/* ---------------------------------------------------- morph layer */
+function renderMorph(t) {
+  const coc = cocoonAt(t);
+  const allIn = t >= T(9, 1, .9) && t < T(11, 1);      // every pebble has merged: draw the single cocoon
+  show(D.cocoon, allIn);
+  if (allIn) D.cocoon.firstElementChild.setAttribute('d', polyD(blobPts(M.letters[0].blob, coc)));
+  // ripples: one outline per pulse, expanding and fading (8 slots, assigned by pulse index)
+  const rp = D.ripples.children;
+  for (let k = 0; k < 8; k++) {
+    let best = -1;
+    PULSES.forEach(([tp], j) => { if (j % 8 === k && t >= tp) best = j; });
+    const age = best < 0 ? 9 : t - PULSES[best][0];
+    if (age > .9 || t >= T(11, 1)) { rp[k].setAttribute('d', ''); continue; }
+    const e = 1 - Math.exp(-age / .28), c0 = cocoonAt(PULSES[best][0]);
+    const g = 1 + 1.1 * e;
+    rp[k].setAttribute('d', polyD(blobPts(M.letters[0].blob, { cx: c0.cx, cy: c0.cy, w: c0.w * g + 40 * e, h: c0.h * g + 40 * e })));
+    rp[k].setAttribute('stroke', css(NAVY, .55 * (1 - e)));
+  }
+
+  HERITAGE.forEach((h, i) => {
+    const e = D.morph[i], path = e.firstElementChild, Lm = M.letters[i], info = letterInfo(i);
+    const tTravel = T(6, 1, i / 2), tMelt = T(7, 1, i / 2), tConv = T(8, 1, i / 2);
+    const tBurst = T(11, 1) + .028 * Math.abs(i - 3.5), tEnd = T(11, 3);
+    if (t < T(7, 1) - 1e-9 && t < tTravel) { /* still a logo part */ }
+    const visible = t >= T(7, 1) - 1e-9 ? true : false;
+    // before the morph layer takes over, the letter travels as a logo part (drawn here for continuity)
+    // travel: from its logo position to the row, on its 8th note (keeps settling during the melt)
+    const L = info.logo === 'kunzle' ? TL.KL : TL.RL, lg = LG[info.logo];
+    const lx = L.x.at(t), ly = L.y.at(t), ls = L.s.at(t);
+    const start = { cx: lx + (info.pcx - lg.cx) * ls, cy: ly + (info.pcy - lg.cy) * ls, s: ls };
+    const tu = spring(t - tTravel, 10, .9);
+    const pos = { cx: lerp(start.cx, info.row.cx, tu), cy: lerp(start.cy, info.row.cy, tu) - 90 * Math.sin(Math.PI * clamp(tu)), s: lerp(start.s, info.row.s, tu) };
+    if (t < T(7, 1)) {
+      if (t < tTravel || tu <= 0) { show(e, false); setPartVisible(info, true); return; }
+      setPartVisible(info, false);
+      const cx = pos.cx, cy = pos.cy, s = pos.s;
+      show(e, true);
+      path.setAttribute('d', srcPath(Lm, info, cx, cy, s));
+      path.setAttribute('fill', css(info.logo === 'kunzle' ? K_BLUE : R_RED));
+      return;
+    }
+    show(e, !allIn && t < tEnd);
+    if (allIn || t >= tEnd) return;
+    const col0 = info.logo === 'kunzle' ? K_BLUE : R_RED;
+    const pebble = { cx: pos.cx, cy: pos.cy, w: info.pw * pos.s * .92, h: info.ph * pos.s * .92 };
+    let d, col;
+    if (t < tConv) {             // melt: old letter → pebble
+      const u = spring(t - tMelt, 9, 1);
+      const S = mapPts(Lm.srcOuter, q => [pos.cx + (q[0] - info.pcx) * pos.s, pos.cy + (q[1] - info.pcy) * pos.s]);
+      const B = blobPts(Lm.blob, pebble);
+      d = polyD(S.map((p, k) => [lerp(p[0], B[k][0], u), lerp(p[1], B[k][1], u)]));
+      if (Lm.srcHole) {
+        const Hs = mapPts(Lm.srcHole, q => [pos.cx + (q[0] - info.pcx) * pos.s, pos.cy + (q[1] - info.pcy) * pos.s]);
+        const c = centroid(Hs);
+        d += polyD(Hs.map(p => [lerp(p[0], c[0], u), lerp(p[1], c[1], u)]));
+      }
+      col = mixc(col0, NAVY, u);
+    } else if (t < tBurst) {     // converge into the cocoon
+      const c = spring(t - tConv, 10, .92);
+      const box = { cx: lerp(pebble.cx, coc.cx, c), cy: lerp(pebble.cy, coc.cy, c) - 70 * Math.sin(Math.PI * clamp(c)), w: lerp(pebble.w, coc.w, c), h: lerp(pebble.h, coc.h, c) };
+      d = polyD(blobPts(Lm.blob, box)); col = NAVY;
+    } else {                     // burst and bloom: pebble → Krisalis letter
+      const c0 = cocoonAt(tBurst);
+      const f = spring(t - tBurst, 13, .82), u = spring(t - tBurst - .06, 11, .95);
+      const tb = info.box;
+      const box = { cx: lerp(c0.cx, tb.cx, f), cy: lerp(c0.cy, tb.cy, f), w: lerp(c0.w, tb.w, f), h: lerp(c0.h, tb.h, f) };
+      const B = blobPts(Lm.blob, box), Dd = Lm.dstOuter.map(krPt);
+      d = polyD(B.map((p, k) => [lerp(p[0], Dd[k][0] - tb.cx + box.cx, u), lerp(p[1], Dd[k][1] - tb.cy + box.cy, u)]));
+      if (Lm.dstHole) {
+        const Hd = Lm.dstHole.map(krPt).map(p => [p[0] - tb.cx + box.cx, p[1] - tb.cy + box.cy]);
+        const c = centroid(Hd);
+        d += polyD(Hd.map(p => [lerp(c[0], p[0], u), lerp(c[1], p[1], u)]));
+      }
+      col = NAVY;
+    }
+    path.setAttribute('d', d); path.setAttribute('fill', css(col));
+    void visible;
+  });
+
+  // the two marks (check, triangle): detach at 9.5 s, orbit, fly into the colon
+  ['kunzle', 'rigolet'].forEach((name, k) => {
+    const e = D.marks[k], path = e.firstElementChild, mk = M.marks[k];
+    const p = LG[name].parts[MARK[name]], [x0, y0, x1, y1] = p.bbox, pcx = (x0 + x1) / 2, pcy = (y0 + y1) / 2;
+    if (t < T(5, 4) || t >= T(11, 3)) { show(e, false); return; }
+    show(e, true);
+    const L = name === 'kunzle' ? TL.KL : TL.RL, lg = LG[name];
+    const det = spring(t - T(5, 4), 9, .85);
+    const inLogo = { pos: [L.x.at(t) + (pcx - lg.cx) * L.s.at(t), L.y.at(t) + (pcy - lg.cy) * L.s.at(t)], sc: L.s.at(t) };
+    const ms = markState(k, t);
+    let pos = [lerp(inLogo.pos[0], ms.pos[0], det), lerp(inLogo.pos[1], ms.pos[1], det)], sc = lerp(inLogo.sc, ms.sc, det);
+    const col0 = name === 'kunzle' ? K_BLUE : R_RED;
+    let u = 0;
+    if (t >= T(11, 1)) {
+      const st = markState(k, T(11, 1)), f = spring(t - T(11, 1), 12, .86);
+      const dot = DATA.krisalis.colon[k], dp = krPt([dot[0], dot[1]]);
+      pos = [lerp(st.pos[0], dp[0], f), lerp(st.pos[1], dp[1], f)];
+      sc = lerp(st.sc, 1, f);
+      u = spring(t - T(11, 1, .1), 10, 1);
+    }
+    const dcx = DATA.krisalis.colon[k][0], dcy = DATA.krisalis.colon[k][1];
+    const S = mk.srcPts.map(q => [pos[0] + (q[0] - pcx) * sc, pos[1] + (q[1] - pcy) * sc]);
+    const Dd = mk.dstPts.map(q => [pos[0] + (q[0] - dcx) * KS, pos[1] + (q[1] - dcy) * KS]);
+    path.setAttribute('d', polyD(S.map((q, i) => [lerp(q[0], Dd[i][0], u), lerp(q[1], Dd[i][1], u)])));
+    path.setAttribute('fill', css(mixc(col0, NAVY, u)));
+  });
+}
+function srcPath(Lm, info, cx, cy, s) {
+  let d = polyD(Lm.srcOuter.map(q => [cx + (q[0] - info.pcx) * s, cy + (q[1] - info.pcy) * s]));
+  if (Lm.srcHole) d += polyD(Lm.srcHole.map(q => [cx + (q[0] - info.pcx) * s, cy + (q[1] - info.pcy) * s]));
+  return d;
+}
+function setPartVisible(info, on) { if (!on) show(D.parts[info.logo][info.sid].e, false); }
+
+/* ============================================================ init */
+window.seek = seek;
+window.READY = false;
+(async () => {
+  await Promise.all(['400', '500', '600', '700'].map(w => document.fonts.load(`${w} 40px Geist`)));
+  await document.fonts.ready;
+  buildTimeline(); buildDOM(); buildText();
+  // long French labels: shrink a line until it fits 1260 px
+  for (const o of KT) {
+    const w = o.s.getBoundingClientRect().width;
+    if (w > 1260) o.s.style.fontSize = f2(o.size * 1260 / w) + 'px';
+  }
+  window.EVENTS = EVENTS.sort((a, b) => a.t - b.t);
+  window.DUR = DUR; window.PERIOD = PERIOD;
+  seek(0);
+  window.READY = true;
+})();
+</script>
+</body>
+</html>

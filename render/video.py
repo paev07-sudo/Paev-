@@ -9,6 +9,7 @@ which blends each group of 4 with tmix and keeps one frame in 4.
 Usage: python3 render/video.py out/krisalis.mp4 [workers] [first last]   (frames are 0..2399)
 """
 import base64
+import os
 import pathlib
 import subprocess
 import sys
@@ -21,7 +22,7 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 FF = imageio_ffmpeg.get_ffmpeg_exe()
 FPS, SUB = 60, 4
 SHUTTER = 0.5          # fraction of the frame interval covered by the sub-frames (180°)
-SEG = ROOT / 'out/segments'
+SEG = ROOT / os.environ.get('KR_SEG', 'out/segments')
 
 
 def render_segment(args):
@@ -67,7 +68,7 @@ def main():
     print(f'rendered {n} frames x {SUB} sub-frames in {time.time() - t0:.0f}s')
     lst = SEG / 'list.txt'
     lst.write_text(''.join(f"file '{s}'\n" for s in segs))
-    audio = ROOT / 'out/soundtrack.wav'
+    audio = ROOT / os.environ.get('KR_AUDIO', 'out/soundtrack.wav')
     cmd = [FF, '-y', '-loglevel', 'error', '-f', 'concat', '-safe', '0', '-i', str(lst)]
     if first == 0 and last == 2400:
         cmd += ['-i', str(audio), '-map', '0:v', '-map', '1:a', '-c:a', 'aac', '-b:a', '256k']

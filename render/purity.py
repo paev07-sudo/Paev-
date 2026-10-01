@@ -23,5 +23,7 @@ def run(order):
         b.close()
     return out
 a, b = run(times), run(shuffled)
-bad = [(round(t, 3), int(np.abs(a[t] - b[t]).max())) for t in times if np.abs(a[t] - b[t]).max() > 0]
-print(f'{n} instants, order-dependent frames: {len(bad)}', bad[:10])
+bad = [(round(t, 3), int(np.abs(a[t] - b[t]).max()), int((np.abs(a[t] - b[t]).max(2) > 8).sum())) for t in times if np.abs(a[t] - b[t]).max() > 0]
+print(f'{n} instants, frames with any difference: {len(bad)} (time, max level diff, pixels differing by > 8/255)')
+print(bad[:20])
+print('worst pixel count:', max([x[2] for x in bad], default=0))

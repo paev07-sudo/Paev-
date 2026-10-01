@@ -1,0 +1,506 @@
+{
+ "events": [
+  {
+   "t": 0,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 0.5,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 0.625,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 0.75,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 0.875,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 1,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 1.25,
+   "type": "swish",
+   "gain": 0.6
+  },
+  {
+   "t": 1.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 2,
+   "type": "whoosh",
+   "gain": 0.7
+  },
+  {
+   "t": 2.15,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 2.5,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 3,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.0625,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.125,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.1875,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.25,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.3125,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.375,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.4375,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.5,
+   "type": "letter",
+   "gain": 1
+  },
+  {
+   "t": 3.5,
+   "type": "swish",
+   "gain": 0.6
+  },
+  {
+   "t": 4,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 4.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 5.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 6,
+   "type": "whoosh",
+   "gain": 1
+  },
+  {
+   "t": 6,
+   "type": "slam",
+   "gain": 1
+  },
+  {
+   "t": 6.05,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 6.125,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 6.5,
+   "type": "slam",
+   "gain": 1
+  },
+  {
+   "t": 6.55,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 6.625,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 7,
+   "type": "slam",
+   "gain": 1.1
+  },
+  {
+   "t": 7,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 7,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 7.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 8,
+   "type": "whoosh",
+   "gain": 1
+  },
+  {
+   "t": 8.5,
+   "type": "fall",
+   "gain": 1
+  },
+  {
+   "t": 9,
+   "type": "shimmer",
+   "gain": 1
+  },
+  {
+   "t": 9.5,
+   "type": "pop",
+   "gain": 0.8
+  },
+  {
+   "t": 10,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 10.25,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 10.5,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 10.75,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 11,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 11.25,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 11.5,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 11.75,
+   "type": "tick",
+   "gain": 0.8
+  },
+  {
+   "t": 12,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 12.25,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 12.5,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 12.75,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 13,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 13.25,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 13.5,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 13.75,
+   "type": "blub",
+   "gain": 1
+  },
+  {
+   "t": 14,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 14.25,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 14.5,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 14.75,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 15,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 15,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 15.25,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 15.5,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 15.75,
+   "type": "tick",
+   "gain": 0.7
+  },
+  {
+   "t": 20,
+   "type": "burst",
+   "gain": 1
+  },
+  {
+   "t": 20.5,
+   "type": "pop",
+   "gain": 1
+  },
+  {
+   "t": 20.54,
+   "type": "pop",
+   "gain": 0.8
+  },
+  {
+   "t": 21,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 22,
+   "type": "whoosh",
+   "gain": 1
+  },
+  {
+   "t": 22.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 24,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 25,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 26,
+   "type": "pop",
+   "gain": 0.8
+  },
+  {
+   "t": 26.25,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 26.5,
+   "type": "pop",
+   "gain": 0.8
+  },
+  {
+   "t": 27,
+   "type": "whoosh",
+   "gain": 0.8
+  },
+  {
+   "t": 27.3,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 27.5,
+   "type": "low",
+   "gain": 1
+  },
+  {
+   "t": 28,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 28,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 28.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 29,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 29.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 30,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 30.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 31,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 31.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 32,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 32.125,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 32.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 33,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 33.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 34,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 34.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 35.1,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 36,
+   "type": "whoosh",
+   "gain": 1
+  },
+  {
+   "t": 36.5,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 37,
+   "type": "tick",
+   "gain": 0.6
+  },
+  {
+   "t": 38,
+   "type": "low",
+   "gain": 0.8
+  }
+ ],
+ "dur": 40,
+ "period": 0.5
+}

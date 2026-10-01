@@ -18,9 +18,10 @@ with sync_playwright() as p:
         return np.asarray(Image.open(io.BytesIO(page.screenshot())).convert('RGB')).astype(np.int16)
     a, z = shot(0), shot(dur)
     print('loop seam: max px diff seek(0) vs seek(DUR) =', int(np.abs(a - z).max()))
-    c = page.evaluate(f'''(() => {{ const e = 1e-3; const p0 = cursorAt(0), pm = cursorAt({dur} - e), pp = cursorAt(e);
-        return {{p0, v_end: [(p0[0]-pm[0])/e, (p0[1]-pm[1])/e], v_start: [(pp[0]-p0[0])/e, (pp[1]-p0[1])/e], end: cursorAt({dur} - 1e-9)}}; }})()''')
-    print('cursor at 0', c['p0'], 'at DUR-', c['end'], 'velocity end', c['v_end'], 'start', c['v_start'])
+    if page.evaluate('typeof cursorAt === "function"'):
+        c = page.evaluate(f'''(() => {{ const e = 1e-3; const p0 = cursorAt(0), pm = cursorAt({dur} - e), pp = cursorAt(e);
+            return {{p0, v_end: [(p0[0]-pm[0])/e, (p0[1]-pm[1])/e], v_start: [(pp[0]-p0[0])/e, (pp[1]-p0[1])/e], end: cursorAt({dur} - 1e-9)}}; }})()''')
+        print('cursor at 0', c['p0'], 'at DUR-', c['end'], 'velocity end', c['v_end'], 'start', c['v_start'])
     diffs = []
     prev = None
     n = int(round(dur * 60))
