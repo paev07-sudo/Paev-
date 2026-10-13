@@ -1,0 +1,4 @@
+out/segments/
+out/render_*.log
+__pycache__/
+out/audio/music_*.wav
