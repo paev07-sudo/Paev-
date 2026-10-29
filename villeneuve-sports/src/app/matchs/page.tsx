@@ -8,11 +8,12 @@ import { Notice, PageHero, SectionHeading } from "@/components/ui/primitives";
 import { CheckedOn } from "@/components/ui/verification";
 import { teams } from "@/content/teams";
 import { getDataSource } from "@/lib/data-source";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Match center",
   description: "Résultats, rencontres à venir et classements du Villeneuve-Sports, avec la date de vérification de chaque donnée.",
-  alternates: { canonical: "/matchs" },
+  alternates: { canonical: pageUrl("/matchs") },
 };
 
 const ACVF = "https://matchcenter-acvf.football.ch/default.aspx?oid=16&lng=2&v=1142";

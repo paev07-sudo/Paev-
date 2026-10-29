@@ -9,7 +9,8 @@ export function ShareButtons({ title, path }: { title: string; path: string }) {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState(false);
   // Browser-only values; the server renders the plain path and no native button.
-  const url = useSyncExternalStore(noop, () => new URL(path, window.location.origin).toString(), () => path);
+  // The current address is used so the link stays right under any base path.
+  const url = useSyncExternalStore(noop, () => window.location.href.split("#")[0], () => path);
   const canShare = useSyncExternalStore(noop, () => typeof navigator.share === "function", () => false);
 
   const native = async () => {

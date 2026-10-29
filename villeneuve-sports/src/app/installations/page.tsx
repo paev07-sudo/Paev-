@@ -4,11 +4,12 @@ import { ArrowUpRight, MapPin } from "@/components/ui/icons";
 import { ButtonLink, Notice, PageHero, SectionHeading } from "@/components/ui/primitives";
 import { SourceList, VerificationBadge } from "@/components/ui/verification";
 import { address, facilityIssues, mapLinks, sportsZone, venues } from "@/content/venue";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Stade de la Tronchenaz",
   description: "Le stade de la Tronchenaz et son terrain annexe, à Villeneuve VD : adresse, accès, terrains et zone sportive.",
-  alternates: { canonical: "/installations" },
+  alternates: { canonical: pageUrl("/installations") },
 };
 
 export default function FacilitiesPage() {

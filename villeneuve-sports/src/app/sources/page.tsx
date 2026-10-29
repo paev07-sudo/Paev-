@@ -5,11 +5,12 @@ import { VerificationBadge, verificationHelp } from "@/components/ui/verificatio
 import { LAST_CHECKED, sources } from "@/content/sources";
 import type { Source, Verification } from "@/content/types";
 import { formatLongDate } from "@/lib/format";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Sources & vérification",
   description: "D'où viennent les informations publiées sur ce site, et comment elles ont été vérifiées.",
-  alternates: { canonical: "/sources" },
+  alternates: { canonical: pageUrl("/sources") },
 };
 
 const kinds: Record<Source["kind"], string> = {

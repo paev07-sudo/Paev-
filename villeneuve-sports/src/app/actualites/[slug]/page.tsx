@@ -9,7 +9,10 @@ import { getArticle, news, sortedNews } from "@/content/news";
 import { getSource, LAST_CHECKED } from "@/content/sources";
 import { getTeam } from "@/content/teams";
 import { formatLongDate } from "@/lib/format";
-import { siteUrl } from "@/lib/site";
+import { pageUrl, siteUrl } from "@/lib/site";
+
+/** Only the listed pages exist; any other URL is a 404. */
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return news.map((a) => ({ slug: a.slug }));
@@ -22,7 +25,7 @@ export async function generateMetadata({ params }: PageProps<"/actualites/[slug]
   return {
     title: a.title,
     description: a.excerpt,
-    alternates: { canonical: `/actualites/${a.slug}` },
+    alternates: { canonical: pageUrl(`/actualites/${a.slug}`) },
     openGraph: { type: "article", title: a.title, description: a.excerpt, publishedTime: a.date },
   };
 }

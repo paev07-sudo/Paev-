@@ -24,6 +24,20 @@ Variables d'environnement (voir `.env.example`) :
 |---|---|
 | `NEXT_PUBLIC_SITE_URL` | URL publique du site (balises canoniques, sitemap, Open Graph). |
 | `NEXT_PUBLIC_FORM_ENDPOINT` | Facultative. Point d'envoi des formulaires (POST JSON). Sans elle, les formulaires préparent un e-mail au club et le disent. |
+| `NEXT_PUBLIC_INDEXABLE` | `true` pour autoriser l'indexation par les moteurs de recherche. Désactivée par défaut, pour que les aperçus ne soient pas pris pour le site officiel. |
+| `STATIC_EXPORT` | `1` pour générer un site statique (HTML, CSS, JS) dans `out/`, sans serveur Node.js. |
+| `NEXT_PUBLIC_BASE_PATH` | Sous-chemin de publication, par exemple `/Paev-` sur GitHub Pages. |
+
+## Publier sur GitHub Pages (version statique)
+
+Le workflow `.github/workflows/villeneuve-sports-pages.yml` (à la racine du dépôt) construit la version
+statique et la publie à chaque modification du site sur la branche `master`, ou à la demande (onglet Actions).
+
+1. Une seule fois : **Settings → Pages → Source : GitHub Actions**.
+2. Le site est alors disponible à l'adresse `https://<compte>.github.io/<dépôt>/`.
+
+Le lien est public, mais le site reste exclu des moteurs de recherche (`NEXT_PUBLIC_INDEXABLE` vaut `false`
+dans le workflow) jusqu'au lancement validé par le club.
 
 ## Pages
 

@@ -5,11 +5,12 @@ import { ButtonLink, Notice, PageHero, SectionHeading } from "@/components/ui/pr
 import { SourceList, VerificationBadge } from "@/components/ui/verification";
 import { club, identityPillars, milestones, people } from "@/content/club";
 import { facilityIssues } from "@/content/venue";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Le club",
   description: "Histoire, identité et comité du Villeneuve-Sports, club de football de Villeneuve VD fondé le 1er juillet 1921.",
-  alternates: { canonical: "/club" },
+  alternates: { canonical: pageUrl("/club") },
 };
 
 export default function ClubPage() {

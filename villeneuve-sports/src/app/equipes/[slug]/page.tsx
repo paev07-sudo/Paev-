@@ -12,6 +12,10 @@ import { club } from "@/content/club";
 import { matchesForTeam, standings } from "@/content/matches";
 import { LAST_CHECKED } from "@/content/sources";
 import { audienceLabels, getTeam, sections, teams } from "@/content/teams";
+import { pageUrl } from "@/lib/site";
+
+/** Only the listed pages exist; any other URL is a 404. */
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return teams.map((t) => ({ slug: t.slug }));
@@ -24,7 +28,7 @@ export async function generateMetadata({ params }: PageProps<"/equipes/[slug]">)
   return {
     title: team.shortName,
     description: `${team.name} — ${team.competition ?? team.category}. ${team.summary}`,
-    alternates: { canonical: `/equipes/${team.slug}` },
+    alternates: { canonical: pageUrl(`/equipes/${team.slug}`) },
   };
 }
 

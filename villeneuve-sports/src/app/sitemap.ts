@@ -5,6 +5,8 @@ import { LAST_CHECKED } from "@/content/sources";
 import { teams } from "@/content/teams";
 import { siteUrl } from "@/lib/site";
 
+export const dynamic = "force-static";
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const at = new Date(`${LAST_CHECKED}T12:00:00Z`);
   const page = (path: string, priority: number): MetadataRoute.Sitemap[number] => ({ url: `${siteUrl}${path}`, lastModified: at, priority });

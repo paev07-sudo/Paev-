@@ -8,6 +8,10 @@ import { getMatch, matches, outcome } from "@/content/matches";
 import { LAST_CHECKED } from "@/content/sources";
 import { getTeam } from "@/content/teams";
 import { formatLongDate } from "@/lib/format";
+import { pageUrl } from "@/lib/site";
+
+/** Only the listed pages exist; any other URL is a 404. */
+export const dynamicParams = false;
 
 export function generateStaticParams() {
   return matches.map((m) => ({ id: m.id }));
@@ -21,7 +25,7 @@ export async function generateMetadata({ params }: PageProps<"/matchs/[id]">): P
   return {
     title: `${m.home.name}${score} ${m.away.name}`,
     description: `${m.competition}, ${formatLongDate(m.date)}.`,
-    alternates: { canonical: `/matchs/${m.id}` },
+    alternates: { canonical: pageUrl(`/matchs/${m.id}`) },
   };
 }
 

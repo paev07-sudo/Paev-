@@ -6,11 +6,12 @@ import { club } from "@/content/club";
 import { LAST_CHECKED } from "@/content/sources";
 import { teams } from "@/content/teams";
 import { getDataSource } from "@/lib/data-source";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Équipes",
   description: "Toutes les équipes du Villeneuve-Sports en 2026/27 : actifs, seniors, juniors, juniores filles et football des enfants.",
-  alternates: { canonical: "/equipes" },
+  alternates: { canonical: pageUrl("/equipes") },
 };
 
 export default async function TeamsPage() {

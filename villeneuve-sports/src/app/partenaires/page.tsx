@@ -3,11 +3,12 @@ import { SponsorForm } from "@/components/forms/forms";
 import { Notice, PageHero, SectionHeading } from "@/components/ui/primitives";
 import { SourceList, VerificationBadge } from "@/components/ui/verification";
 import { sponsors, sponsorsListedOn } from "@/content/sponsors";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Partenaires",
   description: "Les partenaires du Villeneuve-Sports et comment soutenir le club de football de Villeneuve VD.",
-  alternates: { canonical: "/partenaires" },
+  alternates: { canonical: pageUrl("/partenaires") },
 };
 
 const ways = [

@@ -7,11 +7,12 @@ import { SourceList } from "@/components/ui/verification";
 import { club } from "@/content/club";
 import { teams } from "@/content/teams";
 import type { TeamSection } from "@/content/types";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Rejoindre le club",
   description: "Comment rejoindre le Villeneuve-Sports : catégories, démarches, cotisation et demande d'inscription.",
-  alternates: { canonical: "/rejoindre" },
+  alternates: { canonical: pageUrl("/rejoindre") },
 };
 
 const paths: { title: string; who: string; sections: TeamSection[]; text: string }[] = [

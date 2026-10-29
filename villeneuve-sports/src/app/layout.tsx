@@ -4,7 +4,7 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { RevealObserver } from "@/components/ui/reveal-observer";
 import { club } from "@/content/club";
-import { siteUrl } from "@/lib/site";
+import { indexable, pageUrl, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const barlowCondensed = localFont({
@@ -33,7 +33,8 @@ const description =
   "Villeneuve-Sports, club de football de Villeneuve VD fondé en 1921 : équipes actifs, juniors et juniores, match center, stade de la Tronchenaz et inscriptions.";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  // Origin only: Next.js adds the base path to file-based metadata (icons, sharing image) itself.
+  metadataBase: new URL(new URL(siteUrl).origin),
   title: {
     default: "Villeneuve-Sports — Football à Villeneuve VD depuis 1921",
     template: "%s · Villeneuve-Sports",
@@ -47,10 +48,11 @@ export const metadata: Metadata = {
     siteName: "Villeneuve-Sports",
     title: "Villeneuve-Sports — Football à Villeneuve VD depuis 1921",
     description,
-    url: "/",
+    url: pageUrl("/"),
   },
   twitter: { card: "summary_large_image" },
-  alternates: { canonical: "/" },
+  alternates: { canonical: pageUrl("/") },
+  robots: indexable ? { index: true, follow: true } : { index: false, follow: false },
 };
 
 export const viewport: Viewport = {

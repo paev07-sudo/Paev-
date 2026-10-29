@@ -6,11 +6,12 @@ import { PageHero, SectionHeading } from "@/components/ui/primitives";
 import { SourceList, VerificationBadge } from "@/components/ui/verification";
 import { club, people } from "@/content/club";
 import { address, mapLinks } from "@/content/venue";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Contact",
   description: "Contacter le Villeneuve-Sports : e-mail, adresse postale, stade de la Tronchenaz et réseaux sociaux.",
-  alternates: { canonical: "/contact" },
+  alternates: { canonical: pageUrl("/contact") },
 };
 
 export default function ContactPage() {

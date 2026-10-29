@@ -1,0 +1,57 @@
+# Builds the Villeneuve-Sports site as static HTML and publishes it on GitHub Pages.
+# One-time setup: repository Settings → Pages → Source: "GitHub Actions".
+name: Villeneuve-Sports site (GitHub Pages)
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "villeneuve-sports/**"
+      - ".github/workflows/villeneuve-sports-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: villeneuve-sports
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: villeneuve-sports/package-lock.json
+      - id: pages
+        uses: actions/configure-pages@v5
+      - run: npm ci
+      - run: npm run build
+        env:
+          STATIC_EXPORT: "1"
+          NEXT_PUBLIC_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          NEXT_PUBLIC_SITE_URL: ${{ steps.pages.outputs.base_url }}
+          # Preview: not indexed by search engines until the club approves a launch.
+          NEXT_PUBLIC_INDEXABLE: "false"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: villeneuve-sports/out
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

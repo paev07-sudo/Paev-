@@ -5,11 +5,12 @@ import { ArrowRight } from "@/components/ui/icons";
 import { Notice, PageHero } from "@/components/ui/primitives";
 import { sortedNews } from "@/content/news";
 import { formatLongDate } from "@/lib/format";
+import { pageUrl } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Actualités",
   description: "Résultats, vie du club, juniors et installations : l'actualité du Villeneuve-Sports, rédigée à partir de sources publiques.",
-  alternates: { canonical: "/actualites" },
+  alternates: { canonical: pageUrl("/actualites") },
 };
 
 export default function NewsPage() {
